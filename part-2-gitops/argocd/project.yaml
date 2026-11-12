@@ -1,0 +1,15 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: quote-api
+  namespace: argocd
+spec:
+  description: quote-api service (Part 2)
+  sourceRepos:
+    - "*"
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: quote-api
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace

@@ -1,0 +1,67 @@
+nameOverride: "quote-api"
+fullnameOverride: "quote-api"
+runtime: "nodejs"
+
+image:
+  tag: "sha-local"
+
+env:
+  - name: PORT
+    value: "3000"
+  - name: CPU_WORK_MS
+    value: "100"
+
+config:
+  APP_NAME: "quote-api"
+  LOG_LEVEL: "INFO"
+
+service:
+  component: quote-api
+
+ingress:
+  enabled: true
+
+affinity:
+  nodeAffinity:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+        - matchExpressions:
+            - key: acme.io/capacity
+              operator: In
+              values:
+                - spot
+                - on-demand
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 60
+        preference:
+          matchExpressions:
+            - key: acme.io/capacity
+              operator: In
+              values:
+                - spot
+      - weight: 40
+        preference:
+          matchExpressions:
+            - key: acme.io/capacity
+              operator: In
+              values:
+                - on-demand
+
+topologySpreadConstraints:
+  - maxSkew: 2
+    topologyKey: acme.io/capacity
+    whenUnsatisfiable: DoNotSchedule
+    nodeTaintsPolicy: Honor
+    matchLabelKeys:
+      - pod-template-hash
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: quote-api
+        app.kubernetes.io/instance: quote-api
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: quote-api
+        app.kubernetes.io/instance: quote-api

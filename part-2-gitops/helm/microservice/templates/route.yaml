@@ -1,0 +1,39 @@
+{{- if .Values.route }}
+{{- $dot := . }}
+{{- range $route := .Values.route }}
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: {{ printf "%s-%s" ($route.exposure | default "public") (default (include "app.fullname" $dot) $route.name) | lower | trunc 63 | trimSuffix "-" }}
+  labels:
+    {{- include "app.labels" $dot | nindent 4 }}
+    app.kubernetes.io/component: backend
+    exposure: {{ $route.exposure | default "public" }}
+  annotations:
+    haproxy.router.openshift.io/timeout: {{ $route.timeout | default "5m" }}
+    haproxy.router.openshift.io/balance: {{ $route.balance | default "roundrobin" }}
+    haproxy.router.openshift.io/disable_cookies: "true"
+    haproxy.router.openshift.io/max-body-size: 10m
+    haproxy.router.openshift.io/set-forwarded-headers: "append"
+    {{- if $route.ipWhitelist }}
+    haproxy.router.openshift.io/ip_whitelist: "{{ join "," $route.ipWhitelist }}"
+    {{- end }}
+spec:
+  host: {{ $route.host }}
+  {{- if $route.path }}
+  path: {{ $route.path }}
+  {{- end }}
+  to:
+    kind: Service
+    name: {{ include "app.fullname" $dot }}
+    weight: 100
+  port:
+    targetPort: http
+  tls:
+    termination: {{ if $route.tls }}{{ $route.tls.termination | default "edge" }}{{ else }}edge{{ end }}
+    insecureEdgeTerminationPolicy: {{ if $route.tls }}{{ $route.tls.insecurePolicy | default "Redirect" }}{{ else }}Redirect{{ end }}
+  wildcardPolicy: None
+{{- end }}
+{{- end }}
+

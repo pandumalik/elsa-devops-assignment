@@ -1,0 +1,21 @@
+# Node.js
+node_modules/
+npm-debug.log*
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+
+# Local kubeconfig & runtime artifacts
+.kube/
+*.kubeconfig
+/tmp/
+
+
+# Terraform variable values (may contain secrets)
+*.tfvars
+!*.tfvars.example
+
+original-document.txt

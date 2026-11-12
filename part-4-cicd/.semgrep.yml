@@ -1,0 +1,35 @@
+rules:
+  - id: no-hardcoded-aws-access-key
+    patterns:
+      - pattern-regex: (A3T[A-Z0-9]|AKIA|AGPA|AIDA|AROA|AIPA|ANPA|ANVA|ASIA)[A-Z0-9]{16}
+    message: "Hardcoded AWS Access Key ID detected. Use OIDC or runtime secret injection."
+    languages: [javascript, typescript, yaml, json]
+    severity: ERROR
+
+  - id: no-eval-in-express
+    pattern: eval(...)
+    message: "Avoid eval() in Node.js services due to remote code execution risk."
+    languages: [javascript, typescript]
+    severity: ERROR
+
+  - id: no-child-process-exec-untrusted
+    patterns:
+      - pattern-either:
+          - pattern: require($MOD).exec(...)
+          - patterns:
+              - pattern-inside: |
+                  $CP = require($MOD);
+                  ...
+              - pattern: $CP.exec(...)
+          - patterns:
+              - pattern-inside: |
+                  const { exec } = require($MOD);
+                  ...
+              - pattern: exec(...)
+      - metavariable-regex:
+          metavariable: $MOD
+          regex: ^['"`](node:)?child_process['"`]$
+    message: "Avoid shell-invoking child_process.exec(); use execFile() with explicit argument arrays."
+    languages: [javascript, typescript]
+    severity: ERROR
+

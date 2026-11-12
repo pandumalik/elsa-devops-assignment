@@ -1,0 +1,20 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: quote-api
+  namespace: quote-api
+  labels:
+    app.kubernetes.io/name: quote-api
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: quote-api
+  namespaceSelector:
+    matchNames:
+      - quote-api
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 10s
+      scrapeTimeout: 5s
+

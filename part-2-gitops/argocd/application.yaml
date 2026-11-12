@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: quote-api
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: quote-api
+  source:
+    repoURL: https://github.com/elsa-devops/elsa-devops-assignment.git
+    targetRevision: HEAD
+    path: part-2-gitops/helm/microservice
+    helm:
+      releaseName: quote-api
+      valueFiles:
+        - values.yaml
+        - values-quote-api.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: quote-api
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+

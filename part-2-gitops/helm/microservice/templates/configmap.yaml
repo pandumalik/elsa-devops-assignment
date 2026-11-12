@@ -1,0 +1,26 @@
+{{- if .Values.envFromConfigMap }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "app.fullname" . }}-config
+  labels:
+    {{- include "app.labels" . | nindent 4 }}
+data:
+{{- if .Values.config }}
+{{- range $key, $value := .Values.config }}
+{{- if ne $key "app-properties" }}
+  {{ $key }}: {{ $value | quote }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- if or (eq (.Values.runtime | default "") "java") (and .Values.config (index .Values.config "app-properties")) }}
+  application.properties: |
+    spring.application.name={{ include "app.name" . }}
+{{- if and .Values.config (index .Values.config "app-properties") }}
+{{- range $key, $value := index .Values.config "app-properties" }}
+    {{ $key }}={{ $value }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+

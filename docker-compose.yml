@@ -1,0 +1,23 @@
+services:
+  toolbox:
+    build:
+      context: ./toolbox
+      dockerfile: Dockerfile
+    container_name: elsa-toolbox
+    hostname: elsa-toolbox
+    working_dir: /workspace
+    environment:
+      - IN_TOOLBOX=1
+      - CLUSTER_NAME=${CLUSTER_NAME:-elsa}
+      - INGRESS_PORT=${INGRESS_PORT:-8080}
+      - GHCR_IMAGE=${GHCR_IMAGE:-}
+      - KUBECONFIG=/root/.kube/config
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./:/workspace
+      - kubeconfig-data:/root/.kube
+    restart: unless-stopped
+
+volumes:
+  kubeconfig-data:
+

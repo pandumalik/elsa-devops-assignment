@@ -1,0 +1,138 @@
+nameOverride: ""
+fullnameOverride: ""
+runtime: "generic"
+
+image:
+  repository: ghcr.io/elsa-devops/quote-api
+  tag: "sha-local"
+  pullPolicy: IfNotPresent
+imagePullSecrets: []
+
+replicaCount: 3
+revisionHistoryLimit: 10
+progressDeadlineSeconds: 600
+
+reloader:
+  enabled: false
+
+deploymentAnnotations: {}
+
+env: []
+
+podAnnotations: {}
+
+resources:
+  requests:
+    cpu: "100m"
+    memory: "64Mi"
+  limits:
+    cpu: "500m"
+    memory: "128Mi"
+
+service:
+  enabled: true
+  type: ClusterIP
+  port: 80
+  component: backend
+  internalTrafficPolicy: Cluster
+  sessionAffinity: None
+  annotations: {}
+
+containerPorts:
+  - name: http
+    port: 3000
+    protocol: TCP
+
+probes:
+  readiness:
+    enabled: true
+    path: /readyz
+    initialDelaySeconds: 3
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
+  liveness:
+    enabled: true
+    path: /healthz
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+envFromConfigMap: true
+envFromSecret: false
+extraEnvFrom: []
+
+config:
+  LOG_LEVEL: "INFO"
+
+ingress:
+  enabled: false
+  className: "traefik"
+  annotations: {}
+  hosts:
+    - host: ""
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+route: []
+
+pdb:
+  enabled: true
+  minAvailable: 2
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  fsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  privileged: false
+  runAsNonRoot: true
+  runAsUser: 65532
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+
+volumeMounts: []
+volumes: []
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+topologySpreadConstraints: []
+
+hpa:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 15
+      selectPolicy: Max
+      policies:
+        - type: Pods
+          value: 2
+          periodSeconds: 15
+    scaleDown:
+      stabilizationWindowSeconds: 60
+      selectPolicy: Max
+      policies:
+        - type: Percent
+          value: 50
+          periodSeconds: 60
+  metrics:
+    cpu:
+      enabled: true
+      targetAverageUtilization: 60
+    memory:
+      enabled: false
+      targetAverageUtilization: 75
+

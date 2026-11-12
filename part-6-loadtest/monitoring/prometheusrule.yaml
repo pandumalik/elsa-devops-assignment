@@ -1,0 +1,49 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: quote-api-slo-alerts
+  namespace: quote-api
+  labels:
+    app.kubernetes.io/name: quote-api
+spec:
+  groups:
+    - name: quote-api.slo.rules
+      interval: 15s
+      rules:
+        - alert: QuoteApiHighLatencyP95
+          expr: |
+            histogram_quantile(
+              0.95,
+              sum by (le) (
+                rate(quote_api_http_request_duration_seconds_bucket{route="/api/quote"}[1m])
+              )
+            ) > 0.45
+          for: 2m
+          labels:
+            severity: warning
+            service: quote-api
+          annotations:
+            summary: "quote-api P95 latency exceeds 450ms ({{ $value | humanizeDuration }})"
+            description: >-
+              The 95th percentile latency of GET /api/quote has stayed above 450ms
+              (unloaded baseline: 139ms; worst during a normal scale-out: 316ms) for
+              over 2 minutes. Check whether the HPA is at maxReplicas (10), pods are
+              CPU-throttled, or nodes are out of CPU.
+
+        - alert: QuoteApiHighErrorRate
+          expr: |
+            (
+              sum(rate(quote_api_http_requests_total{status_code=~"5.."}[1m]))
+              /
+              clamp_min(sum(rate(quote_api_http_requests_total[1m])), 0.001)
+            ) > 0.01
+          for: 1m
+          labels:
+            severity: critical
+            service: quote-api
+          annotations:
+            summary: "quote-api HTTP 5xx error ratio exceeds 1%"
+            description: >-
+              More than 1% of requests to quote-api are failing with HTTP 5xx over
+              the last 1 minute.
+

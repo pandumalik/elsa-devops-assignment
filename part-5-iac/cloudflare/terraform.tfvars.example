@@ -1,0 +1,7 @@
+# Copy to terraform.tfvars (git-ignored) and fill in real values.
+# Prefer TF_VAR_cloudflare_api_token in the environment over writing the token to disk.
+zone_id                 = "023e105f4ecef8ad9ca31a8372d0c353"
+zone_name               = "example.com"
+record_name             = "quote-api"
+origin_alb_dns          = "k8s-quoteapi-ingress-1234567890.ap-southeast-1.elb.amazonaws.com"
+legacy_status_record_id = "9a7806061c88ada191ed06f989cc3dac"
